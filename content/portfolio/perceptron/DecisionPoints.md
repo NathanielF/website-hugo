@@ -163,28 +163,29 @@ fmt.Println(perceptron(inputs, w, .1, 10))
 Nathaniels-MacBook-Pro:GoLang nathanielforde$ go run Perceptron.go
 Input weight loop 0 : []
 
-Input weight loop 1 : [0 0.38 0.66]
+Input weight loop 1 : [0, 0.38, 0.66]
 
-Input weight loop 2 : [0 0.76 1.32]
+Input weight loop 2 : [0, 0.76, 1.32]
 
-Input weight loop 3 : [-0.2 0.22 1.68]
+Input weight loop 3 : [-0.2, 0.22, 1.68]
 
-Input weight loop 4 : [-0.2 0.34 2.1]
+Input weight loop 4 : [-0.2, 0.34, 2.1]
 
-Input weight loop 5 : [-0.4 -0.68 1.82]
+Input weight loop 5 : [-0.4, -0.68, 1.82]
 
-Input weight loop 6 : [-0.4 -0.68 1.82]
+Input weight loop 6 : [-0.4, -0.68, 1.82]
 
-Input weight loop 7 : [-0.4 -0.68 1.82]
+Input weight loop 7 : [-0.4, -0.68, 1.82]
 
-Input weight loop 8 : [-0.4 -0.68 1.82]
+Input weight loop 8 : [-0.4, -0.68, 1.82]
 
-Input weight loop 9 : [-0.4 -0.68 1.82]
+Input weight loop 9 : [-0.4, -0.68, 1.82]
 
-Input weight loop 10 : [-0.4 -0.68 1.82]
+Input weight loop 10 : [-0.4, -0.68, 1.82]
 
-[-0.4 -0.68 1.82] [2 2 3 2 1 0 0 0 0 0 0]
+[-0.4, -0.68, 1.82] [2, 2, 3, 2, 1, 0, 0, 0, 0, 0, 0]
 
 Here we can see that the perceptron algorithm converges after five iterations, and indeed we can plot the decision boundary in two dimensions based on the discovered weights. Crucially the decision boundary does indeed seperate the two species of iris.
 
-![The Cycle](/portfolio/perceptron/iris.Rplot.png)
+![Plotted Line](/portfolio/perceptron/boundary.png)
+

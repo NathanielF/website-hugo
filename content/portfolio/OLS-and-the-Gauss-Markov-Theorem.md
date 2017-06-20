@@ -45,11 +45,11 @@ $$\hat{\beta} = (X'X)^{-1}\_{p \times p}X'\_{p \times n}Y\_{n \times 1} = [(X'X)
 
 $$X\_{n \times p}\hat{\beta}\_{p \times 1} = X\hat{\beta}\_{n \times 1}$$
 
-$$e\_{n \times 1} = [Y\_{n \times 1} - (X \hat{\beta}\)_{n \times 1}] $$
+$$e\_{n \times 1} = [Y\_{n \times 1} - (X \hat{\beta}\)\_{n \times 1}] $$
 
 In the simple case we have the following image:
 
-<img src ="/projects/OLS/simpleOLS.jpg" style="width: 500px;/img>
+<img src ="/portfolio/OLS/simpleOLS.jpg" style="width: 500px;/img>
 
 ### Orthogonal Vectors
 
@@ -80,7 +80,7 @@ Hence:
 ## The Heart of the Proof
 
 
-![The Pythagorean Relation](/projects/OLS/Pythagorean.gif)
+![The Pythagorean Relation](/porfolio/OLS/Pythagorean.gif)
 
 ### Orthogonal Errors
 (T1)   $$ \hat{\beta} = (X'X)^{-1}X'Y \Rightarrow e \perp X \hat{\beta}$$
@@ -122,7 +122,7 @@ Proof (T2) The Pythagorean Relation Holds
 - $= \lVert X\hat{\beta} + Y - X\hat{\beta} \rVert^{2}$ By (Triangle)
 - $= \lVert Y \rVert^2$
 
-![OLS](/projects/OLS/OLSThreeDimensions.jpg)
+![OLS](/portfolio/OLS/OLSThreeDimensions.jpg)
 
 ### The Relation to Alternative Estimates
 
@@ -150,7 +150,7 @@ Choosing either $\bar{\beta}  > \hat{\beta}$ or $\bar{\beta} < \hat{\beta}$ give
 
 $$ min\Big[\lVert Y - X\hat{\beta} \rVert^{2} + \lVert \pm \textbf{n} \rVert^{2}\Big]$$
 
-### Closing the cirlce
+### Closing the circle
 $$ (T5): \forall \bar{\beta}_{p \times 1} [(Y - X\bar{\beta}) \perp X ] \Rightarrow \bar{\beta} = \hat{\beta} $$
 
 - $(Y - X\bar{\beta}) \perp X$
@@ -160,6 +160,8 @@ $$ (T5): \forall \bar{\beta}_{p \times 1} [(Y - X\bar{\beta}) \perp X ] \Rightar
 - $\Rightarrow \bar{\beta} = (X'X)^{-1}X'Y = \hat{\beta}$
 
 $$ \hat{\beta} = (X'X)^{-1}X'Y  \Leftrightarrow e \perp X $$
+
+This completes our demonstration. The OLS solution to the regression problem holds precisely because the errors are chosen as orthogonal to X. We will now make use of this fact to prove the Gauss Markov theorem which says that beta is the best unbiased linear estimate in the solution space, where we mean that the beta estimate is the best in the sense that it has the least variance. 
 
 ### Covariance and Random Variables
 
@@ -195,7 +197,6 @@ $$cov(X) = E((X - \mu\_{X})(X - \mu\_{X})')$$
 
 ### The Gauss Markov Theorem
 
-![](/Users/nathanielforde/Desktop/Data Science/variance.jpg)
 Assume that:
 
 $$  (1) \, Y = (X \beta + \epsilon)\_{n \times 1} \qquad   (2) \,  E( \epsilon | X) = X^{'}\epsilon = 0\_{n \times 1} $$

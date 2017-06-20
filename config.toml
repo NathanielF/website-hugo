@@ -17,7 +17,7 @@ PygmentsStyle = "friendly"
   description = "Describe your website"
   copyright = "&copy;2017 Nathaniel Forde"
   sidebarAbout = [
-    "I am a developer working in the field of CAT risk. This website is where i work through things I don't understand."
+    "This website is where i work through things I don't understand. Feel free to lend a hand; contact details below"
   ]
   # Contact page
      # Since this template is static, the contact form uses www.formspree.io as a
@@ -46,10 +46,10 @@ email = "nathaniel.forde@gmail.com"
   name = "Get in touch"
   url = "contact/"
 
-
    [[params.navlinks]]
    name = "Blog"
    url = "blog/"
+
 
    [params.social]
    facebook      = "https://www.facebook.com/nathaniel.forde"

@@ -5,9 +5,9 @@ title = "Matrices and Machine Learning"
 image = "/portfolio/matrixAlgebra/MMprinciple.svg.png"
 +++
 
-The ubiquity of matrix manipulation in machine learning means that languages like R and Python, which have been optimised for linear algebra, are very well suited to the task of making robots think. It is less clear to me whether Skynet could be written in Golang? There are a number of machine learning packages in development but none have the naturalness of an R implementation. To that end I decided to create some of the functionality I need. This is simulataneously a test of creativity and the limits of Go's static typing restriction.
+The ubiquity of matrix manipulation in machine learning means that languages like R and Python, which have been optimised for linear algebra, are very well suited to the task of making robots think. It is less clear to me whether Skynet could be written in Golang? 
 
-To begin with we shall utilise Go's native slice data-structure to implement a matrix multiplication function. This is a little tricky since Go's slice data structure doesn't allow indexing by column, but takes only the row index. So in addition to standard dotproduct operation, we also need a function to extract the column values from each matrix. Consequently, a matrix is an array of row-arrays.
+There are a number of machine learning packages in development but none have the naturalness of an R implementation. To that end I decided to create some of the functionality I need. This is simulataneously a test of creativity and the limits of Go's static typing restriction. To begin with we shall utilise Go's native slice data-structure to implement a matrix multiplication function. This is a little tricky since Go's slice data structure doesn't allow indexing by column, but takes only the row index. So in addition to standard dotproduct operation, we also need a function to extract the column values from each matrix. Consequently, a matrix is an array of row-arrays.
 
 ``` go
 func dotproduct(input []float64, weights []float64) float64 {
