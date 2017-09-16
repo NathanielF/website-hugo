@@ -13,7 +13,7 @@ In part this limitation stems from the fact that the Heaviside activation functi
 
 There are two stages in the processing steps of a neural network. The first feedforward step takes in an input matrix and runs it through a series of matrix multiplications to churn out a particular output based on a series of randomised weights. The second step calculates the range of divergence between the output of our neural net and the intended target. In our case we will have a single hidden layer with one output layer. In the picture below we outline how the process ingests the input matrices (green) turns them to calculated matrices (red) and then operates on the calculated matrices (yellow, orange) to prepare for the second backpropagation step of the neural network. 
 
-![Neural Net](/portfolio/neuralNetwork/NeuralNet 2.png)
+![Neural Net](/portfolio/neuralNetwork/NeuralNet2.png)
 
 Here we can see that once we calculate the derivates, we are in a position to establish the deltas with respect to the target and make minor corrections to the initialised weights and biases of our inputs. Then we can re-run this process until such time as the neural network has learned the weights required to make the desired prediction. In particular we shall show how to code a neural network so that it can "learn" the concept of the exclusive disjunction (XOR gate). 
 
