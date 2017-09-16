@@ -15,7 +15,7 @@ There are two stages in the processing steps of a neural network. The first feed
 
 ![Neural Net](/portfolio/neuralNetwork/NeuralNet 2.png)
 
-
+Here we can see that once we calculate the derivates, we are in a position to establish the deltas with respect to the target and make minor corrections to the initialised weights and biases of our inputs. Then we can re-run this process until such time as the neural network has learned the weights required to make the desired prediction. In particular we shall show how to code a neural network so that it can "learn" the concept of the exclusive disjunction (XOR gate). 
 
 ``` go
 package main
@@ -78,9 +78,7 @@ func derivativeSigmoid(x float64) float64 {
 
 func mtrxMult(A matrix, B matrix) matrix {
 	colNum := len(A[0])
-	//fmt.Println("colNum", colNum)
 	rowNum := len(B)
-	//fmt.Println("rowNum", rowNum)
 	if colNum != rowNum {
 		fmt.Println("Error, column, row dimensions do not match")
 	}
@@ -94,7 +92,6 @@ func mtrxMult(A matrix, B matrix) matrix {
 			row = append(row, dotproduct(A[i], returnCol(B, j)))
 		}
 		newMtrx[i] = row
-		//fmt.Println(row)
 	}
 	return newMtrx
 }
@@ -102,11 +99,12 @@ func mtrxMult(A matrix, B matrix) matrix {
 func (n *neuralNet) initWeights(lr float64) {
 	s1 := rand.NewSource(42)
 	r1 := rand.New(s1)
-
+	// row vector
 	bH := make(matrix, 1, len(n.input))
 	for i := 0; i < len(n.input); i++ {
 		bH[0] = append(bH[0], r1.Float64())
 	}
+	// scaler
 	bO := make(matrix, 1, 1)
 	bO[0] = append(bO[0], r1.Float64())
 
@@ -118,7 +116,7 @@ func (n *neuralNet) initWeights(lr float64) {
 		}
 		wH = append(wH, row)
 	}
-
+	// column vector
 	var wO matrix
 	for i := 0; i < len(n.input); i++ {
 		wO = append(wO, []float64{r1.Float64()})
@@ -141,7 +139,7 @@ func (n *neuralNet) calcHiddenLayer() {
 	}
 	n.hiddenLayer = m
 }
-
+// apply activation function
 func (n *neuralNet) activateHiddenLayer() {
 	m := n.hiddenLayer
 	for i := 0; i < len(n.hiddenLayer); i++ {
@@ -169,6 +167,7 @@ func (n *neuralNet) makePrediction() {
 func (n *neuralNet) calculateDerivatives() (matrix, matrix, matrix) {
 	var Errors matrix
 	for i := 0; i < len(n.target); i++ {
+		// Grad of 1/2(t - p)^{2}
 		e := (n.target[i][0] - n.prediction[i][0])
 		Errors = append(Errors, []float64{e})
 	}
@@ -193,7 +192,6 @@ func (n *neuralNet) calculateDerivatives() (matrix, matrix, matrix) {
 
 func (n *neuralNet) findDeltas() (matrix, matrix) {
 	e, p, h := n.calculateDerivatives()
-	//fmt.Println("Derivative Hidden", h)
 	var predictionDelta matrix
 	for i := 0; i < len(e); i++ {
 		d := e[i][0] * p[i][0]
@@ -201,7 +199,7 @@ func (n *neuralNet) findDeltas() (matrix, matrix) {
 	}
 
 	errorHidden := mtrxMult(predictionDelta, transpose(n.weightsOutput))
-	//fmt.Println("Error Hidden", errorHidden)
+	// begin backpropagate by transposing the matrix and reversing the direction
 
 	var deltaHidden matrix
 	for i := 0; i < len(h); i++ {
@@ -217,6 +215,7 @@ func (n *neuralNet) findDeltas() (matrix, matrix) {
 }
 
 func (n *neuralNet) updateWeights() {
+	// begin backpropagate 
 	pD, hD := n.findDeltas()
 	lr := n.learningRate
 	m := mtrxMult(transpose(n.activatedHidden), pD)
@@ -278,13 +277,14 @@ func (n *neuralNet) printNet() {
 }
 
 func main() {
+	// XOR input
 	X := matrix{
 		{0, 0},
 		{0, 1},
 		{1, 0},
         {1, 1}
 	}
-	y := matrix{{0}, {1}, {1}, {0}} // Trying to predict
+	y := matrix{{0}, {1}, {1}, {0}} // Trying to learn
 
 	w1 := matrix{
 		{0.42, .88, .55, .71},
@@ -316,7 +316,7 @@ func main() {
 	}
 	for i := 0; i < 5000; i++ {
 		n.forwardPropagation()
-		n.updateWeights()
+		n.updateWeights() // backpropagate
 	}
 	n.printNet()
 
