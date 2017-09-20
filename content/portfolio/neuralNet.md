@@ -15,7 +15,11 @@ There are two stages in the processing steps of a neural network. The first feed
 
 ![Neural Net](/portfolio/neuralNetwork/NeuralNet2.png)
 
-Here we can see that once we calculate the derivates, we are in a position to establish the deltas with respect to the target and make minor corrections to the initialised weights and biases of our inputs. Then we can re-run this process until such time as the neural network has learned the weights required to make the desired prediction. In particular we shall show how to code a neural network so that it can "learn" the concept of the exclusive disjunction (XOR gate). 
+Here we can see that once we calculate the derivates, we are in a position to establish the deltas with respect to the target and make minor corrections to the initialised weights and biases of our inputs. Then we can re-run this process until such time as the neural network has learned the weights required to make the desired prediction. 
+
+![Backpropagation](/portfolio/neuralNetwork/backprop.png)
+
+So long as we set the fractional learning rate parameter to be suitably small we are unlikely to fall into a cycle of over-correction. So the forward propagation and prediction followed by the backprogagation correction process can be repeated thousands of times until convergence is achieved. In particular we shall show how to code a neural network so that it can "learn" the concept of the exclusive disjunction (XOR gate). 
 
 ``` go
 package main
@@ -199,7 +203,6 @@ func (n *neuralNet) findDeltas() (matrix, matrix) {
 	}
 
 	errorHidden := mtrxMult(predictionDelta, transpose(n.weightsOutput))
-	// begin backpropagate by transposing the matrix and reversing the direction
 
 	var deltaHidden matrix
 	for i := 0; i < len(h); i++ {
