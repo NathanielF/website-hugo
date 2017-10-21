@@ -1,0 +1,960 @@
+---
+title: "Fisher's Exact P-values"
+image: "/portfolio/Causation/null-hypothesis.png"
+output:
+  html_notebook: default
+  html_document: default
+---
+
+
+
+<p>In this post we outline an attempt to pin down causal relationships in social science using Fisher’s approach of exact p-values</p>
+<div id="fishers-exact-p-values-and-randomised-distributions" class="section level3">
+<h3>Fisher’s Exact p-values and Randomised distributions</h3>
+<p>The fundamental problem of causal inference is best illustrated within the ideal of a randomised experiment where we can observe for each patient their previous traits, whether or not they were treated and their individual outcomes under a given treatment plan.</p>
+<p>It is easy to see that we are unable to observe the counterfactual outcome for each particular patient under this treatment plan. A treatment plan <span class="math inline">\(\textbf{ W }\)</span> counts as a randomised experiment if each patient is assigned a treatment status with probability between 0 and 1 according to a function known by the experimenter.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+unit
+</th>
+<th style="text-align:right;">
+Y(0)
+</th>
+<th style="text-align:right;">
+Y(1)
+</th>
+<th style="text-align:right;">
+W
+</th>
+<th style="text-align:left;">
+covariates
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Patient #1
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+3, 2, 1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #2
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+2, 4, 1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #3
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+5, 2, 4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:left;">
+6, 1, 3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:left;">
+4, 3, 2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #6
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:left;">
+4, 1, 2
+</td>
+</tr>
+</tbody>
+</table>
+<p>In this table we can see only the outcomes of the experiment for six patients, but we are unable to calculate the causal effect at the patient level because we will never observe the counterfactual result of not treating (treating) a treated (not treated) patient. Instead, following Fisher we seek to observe the average causal effect of the treatment at a population level by deriving a test-statistic from our observed results.</p>
+<p><span class="math inline">\(T(\textbf{W}, \textbf{Y}^{obs}) = T^{diff} = |\overline{Y}^{obs}_{1} - \overline{Y}^{obs}_{0}|  = |8 / 3 - 5 /3 | = 1.00\)</span></p>
+<p>Now this result is insufficient to conclude anything substantial but consider the addition of a second assumption regarding the null hypothesis. If the null hypothesis is true, (i.e. if the treatment has no effect), then we have the following situation where:</p>
+<p><span class="math inline">\(Y_{c}(0) = Y_{t}(1) = Y^{obs}\)</span></p>
+<p>holds regardless of treatment plan. Hence we can vary the treatment in the following fashion and calculate the test statistics from each. There are <span class="math inline">\({6 \choose 3} = 20\)</span> treatment plans, but we show the first 6 to give the idea.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+1
+</th>
+<th style="text-align:right;">
+2
+</th>
+<th style="text-align:right;">
+3
+</th>
+<th style="text-align:right;">
+4
+</th>
+<th style="text-align:right;">
+5
+</th>
+<th style="text-align:right;">
+6
+</th>
+<th style="text-align:right;">
+testStat
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3.6666667
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.6666667
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2.3333333
+</td>
+</tr>
+</tbody>
+</table>
+<p>But in a population of a larger size the the numbers quickly grow. For instance with 30 patients, we have <span class="math inline">\({30 \choose 15 } = 155,117,520\)</span> number of potential treatment plans. Of these plans the null hypothesis states that the observed outcome is as likely as any other outcome. More concretely we can derive a p-value (the probability of our observed case occuring given the null hypothesis) for our observed test-statistic from the fact that we can calculate all the potential test-statistics resulting from every possible treatment plan. Our p-value is the proportion of the possible treatment plans would result in test-statistic greater than or comparable to the observed test-statistic? A low p-value, typically below .05 indicates that the null hypothesis is false.</p>
+<p>This type of consideration allows us to assess whether there is an effect of the treatment, but not the degree to which the treatment is effective. Fortunately we can make use of the same set up to estimate the average causal effect to within an arbitary degree of confidence.</p>
+<p>Consider instead that we take a series of null hypotheses to be defined as:</p>
+<p><span class="math inline">\(Y_{c}(0) = Y_{t}(1) + c\)</span> where <span class="math inline">\(c \in C = [-3, -2.75, -2.5, ... 1.00]\)</span></p>
+<p>Then for each case we are able to fill in the outcomes table. If we let <span class="math inline">\(c = .5\)</span> then we have:</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+unit
+</th>
+<th style="text-align:left;">
+Y(0)
+</th>
+<th style="text-align:left;">
+Y(1)
+</th>
+<th style="text-align:right;">
+W
+</th>
+<th style="text-align:left;">
+covariates
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Patient #1
+</td>
+<td style="text-align:left;">
+(2.5)
+</td>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+3, 2, 1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #2
+</td>
+<td style="text-align:left;">
+(4.5)
+</td>
+<td style="text-align:left;">
+5
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+2, 4, 1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #3
+</td>
+<td style="text-align:left;">
+(-0.5)
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+5, 2, 4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #4
+</td>
+<td style="text-align:left;">
+4
+</td>
+<td style="text-align:left;">
+(4.5)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:left;">
+6, 1, 3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #5
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+(.5)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:left;">
+4, 3, 2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Patient #6
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+(1.5)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:left;">
+4, 1, 2
+</td>
+</tr>
+</tbody>
+</table>
+<p>which gives us the following test-statistic.</p>
+<p><span class="math inline">\(T(\textbf{W}, \textbf{Y}^{obs}) = T^{diff} = |\overline{Y}^{obs}_{1} - \overline{Y}^{obs}_{0} - c| = |8/3 - 5/3 -.5| = 0.5\)</span></p>
+<p>we can now range over all the possible treatment plans and calculate a test statistic for each allowing us to derive a p-value for the observed result. Repeating this process for each <span class="math inline">\(c \in C\)</span> we gain a set of p-values which will circumscribe those elements of <span class="math inline">\(C\)</span> which have high positive probability under the assumed null hypothesis - giving us a range of values which are plausible candidates for the average causal effect of the treatment. However to calculate the p-value under each possible treatment plan is computationally very expensive. Instead we approximate the pvalue for each hypothesis by sampling from the set of all possible random assignments.</p>
+<p>Consider a patient group of 14, then we have <span class="math inline">\({14 \choose 7} = 3432\)</span> possible treatment plans. Our null hypothesis states that the treatment has a constant individual unit effect, so we can assess our observed t-statistic over the set of possible t-statistics derived from varying the treatment plan therby deriving a p-value for the observed result given the hypothesis of a constant effect. We can in the small cases where patients are a manageable number sample from the number of possible treatment plans to approximate the exact p-value. In the case of of 14 patients we can calculate the exact p-value, but with patient numbers 30+, we often need to use approximations. If we iterate the process of series of constant values we can observe the candidate values which make our observed result more or less probable.</p>
+<p>In our example we shall set up the control group to have a mean observed effect which varies around zero with a standard deviation of 1 and the treatment group to display observed effects with a standard deviation of 1 around 3. We shall then calculate the exact p-values and use these to isolate the unit causal effect.</p>
+<pre class="r"><code>library(knitr)
+library(dplyr)
+library(kableExtra)
+library(magrittr)
+options(knitr.table.format = &quot;html&quot;) 
+set.seed(1)
+
+makeDF &lt;- function(units) {
+  len &lt;- units
+  Y0 &lt;- rnorm(units, 0, 1)
+  Y0[1:(len/2)] &lt;- NA
+  Y1 &lt;- rnorm(units, 3, 1)
+  Y1[((len/2)+1):len] &lt;- NA
+  units &lt;- 1:len
+  treatment &lt;- c(rep(0, len))
+  treatment[1: len/2] &lt;- 1
+  df &lt;- data_frame(units, Y0, Y1, treatment)
+  colnames(df) &lt;- c(&quot;unit&quot;, &quot;Y(0)&quot;, &quot;Y(1)&quot;, &quot;W&quot;)
+  return(df)
+}
+
+potential_treatments &lt;- c()
+# Method for sampling from distribution of treatment plans when computational
+# considerations demand approximation rather than exact figures
+#n &lt;- No. of patients
+#assignment &lt;- rep(c(0, 1), n)
+#k &lt;- No of samples
+#for (i in 1:k) {
+#  permutation &lt;- sample(assignment)
+#  if (!(permutation %in% potential_treatments)) {
+#    potential_treatments &lt;- c(potential_treatments, list(permutation))
+#  }
+#}
+
+combinations &lt;- function(n) 
+    expand.grid(rep(list(0:1),n))
+
+comb &lt;- combinations(14)
+comb$sum &lt;- rowSums(comb)
+treatments &lt;- subset(comb, comb$sum == 7)
+treatments &lt;- treatments[,1:14]
+for (i in 1:nrow(treatments)) {
+  potential_treatments &lt;- c(potential_treatments, list(t(treatments[i,])))
+}
+print(length(potential_treatments))</code></pre>
+<pre><code>## [1] 3432</code></pre>
+<pre class="r"><code>calcTest &lt;- function(df, hypothetical_difference) {
+  AvgT &lt;- aggregate(`Y(1)` ~ W, df, mean)
+  AvgT &lt;- as.matrix(AvgT)
+  AvgC &lt;- aggregate(`Y(0)` ~ W, df, mean)
+  AvgT &lt;- as.matrix(AvgT)
+  diff &lt;- abs(AvgT[2, 2] - AvgC[1, 2] - hypothetical_difference)
+  return(diff)
+}
+
+calcPvalue &lt;- function(df, potential_treatments, treatment, hypothetical_difference) {
+  df$W &lt;- treatment
+  df$`Y(1)` &lt;- ifelse(is.na(df$`Y(1)`), 
+                      df$`Y(0)` + hypothetical_difference, 
+                      df$`Y(1)`)
+  df$`Y(0)` &lt;- ifelse(is.na(df$`Y(0)`), 
+                      df$`Y(1)` - hypothetical_difference,
+                      df$`Y(0)`)
+  observed &lt;- calcTest(df, hypothetical_difference)
+  
+  testStats &lt;- c()
+  for (j in 1:length(potential_treatments)) {
+      df2 &lt;- df
+      df2$W &lt;- potential_treatments[[j]]
+      df2$`Y(1)` &lt;- ifelse(is.na(df2$`Y(1)`), 
+                          df2$`Y(0)` + hypothetical_difference, 
+                          df2$`Y(1)`)
+      df2$`Y(0)` &lt;- ifelse(is.na(df2$`Y(0)`), 
+                           df2$`Y(1)` - hypothetical_difference, 
+                           df2$`Y(0)`)
+      testStats &lt;- c(testStats, calcTest(df2, hypothetical_difference))
+  }
+  pvalue &lt;- length(testStats[testStats &gt;= observed]) / length(testStats)
+  return(c(observed, pvalue))
+}
+
+calcAll &lt;- function(units, potential_treatments, treatment, hypothetical_differences) {
+  pvalues &lt;- data_frame(Candidate = c(1), Observed = c(2), Pvalue = c(3))
+  df &lt;- makeDF(units)
+  for (i in 1:length(hypothetical_differences)) {
+    pvalue  &lt;- calcPvalue(df, potential_treatments, treatment, hypothetical_differences[i])
+    pvalues &lt;- rbind(pvalues, c(hypothetical_differences[i], pvalue[1], pvalue[2]))
+  }
+  return(pvalues)
+}
+
+hypothetical_differences &lt;- seq(2, 5, .2) 
+treatment &lt;- c(rep(0, 14))
+treatment[1:7] &lt;- 1
+result &lt;- calcAll(14, potential_treatments, treatment, hypothetical_differences)
+colnames(result) &lt;- c(&quot;Hypothetical Difference&quot;, &quot;Observed TestStat&quot;, &quot;Exact P-value&quot;)
+df &lt;- makeDF(14)
+
+observed &lt;- kable(head(df, 14), &quot;html&quot;) %&gt;% kable_styling()
+observed</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+unit
+</th>
+<th style="text-align:right;">
+Y(0)
+</th>
+<th style="text-align:right;">
+Y(1)
+</th>
+<th style="text-align:right;">
+W
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3.696963
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3.556663
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+2.311244
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+2.292505
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3.364582
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3.768533
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+2.887654
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+-0.4149946
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+-0.3942900
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+-0.0593134
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+1.1000254
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+0.7631757
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+-0.1645236
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+-0.2533617
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>hypotheses &lt;- kable(result[2:nrow(result), ], &quot;html&quot;) %&gt;% kable_styling()
+hypotheses</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+Hypothetical Difference
+</th>
+<th style="text-align:right;">
+Observed TestStat
+</th>
+<th style="text-align:right;">
+Exact P-value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+2.0
+</td>
+<td style="text-align:right;">
+1.6096202
+</td>
+<td style="text-align:right;">
+0.0026224
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+1.4096202
+</td>
+<td style="text-align:right;">
+0.0049534
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2.4
+</td>
+<td style="text-align:right;">
+1.2096202
+</td>
+<td style="text-align:right;">
+0.0201049
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+1.0096202
+</td>
+<td style="text-align:right;">
+0.0457459
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2.8
+</td>
+<td style="text-align:right;">
+0.8096202
+</td>
+<td style="text-align:right;">
+0.1150932
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+0.6096202
+</td>
+<td style="text-align:right;">
+0.2473776
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3.2
+</td>
+<td style="text-align:right;">
+0.4096202
+</td>
+<td style="text-align:right;">
+0.4574592
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+0.2096202
+</td>
+<td style="text-align:right;">
+0.7150350
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3.6
+</td>
+<td style="text-align:right;">
+0.0096202
+</td>
+<td style="text-align:right;">
+0.9842657
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3.8
+</td>
+<td style="text-align:right;">
+0.1903798
+</td>
+<td style="text-align:right;">
+0.7162005
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4.0
+</td>
+<td style="text-align:right;">
+0.3903798
+</td>
+<td style="text-align:right;">
+0.4516317
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4.2
+</td>
+<td style="text-align:right;">
+0.5903798
+</td>
+<td style="text-align:right;">
+0.2634033
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4.4
+</td>
+<td style="text-align:right;">
+0.7903798
+</td>
+<td style="text-align:right;">
+0.1235431
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4.6
+</td>
+<td style="text-align:right;">
+0.9903798
+</td>
+<td style="text-align:right;">
+0.0705128
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4.8
+</td>
+<td style="text-align:right;">
+1.1903798
+</td>
+<td style="text-align:right;">
+0.0320513
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5.0
+</td>
+<td style="text-align:right;">
+1.3903798
+</td>
+<td style="text-align:right;">
+0.0174825
+</td>
+</tr>
+</tbody>
+</table>
+<p>From which we can see that we have a 95% confidence interval for the causal effect of our treatment between 2.6 and 4.8 which is a conservative estimate allowing for the fact that our set up specified a potential standard deviatin of 1 in both groups. But note how the p-values are highest around 3 - the actual difference (as we defined it) in the means of the two groups.</p>
+</div>

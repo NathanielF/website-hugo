@@ -1,0 +1,254 @@
+---
+title: "Fisher's Exact P-values"
+image: "/portfolio/Causation/null-hypothesis.png"
+output:
+  html_notebook: default
+  html_document: default
+---
+
+In this post we outline an attempt to pin down causal relationships in social science using Fisher's approach of exact p-values
+
+### Fisher's Exact p-values and Randomised distributions
+
+The fundamental problem of causal inference is best illustrated within the ideal of a 
+randomised experiment where we can observe for each patient their previous traits, 
+whether or not they were treated and their individual outcomes under a given treatment plan.
+
+It is easy to see that we are unable to observe the counterfactual outcome for each particular patient under this treatment plan. A treatment plan $\textbf{ W }$ counts as a randomised experiment if each patient is assigned a treatment status with probability between 0 and 1 according to a function known by the experimenter.  
+
+```{r warning = FALSE, message=FALSE, warning=FALSE, echo= FALSE}
+library(MatchIt)
+library(xtable)
+library(kableExtra)
+library(knitr)
+library(data.table)
+library(DT)
+
+data(lalonde)
+medical_example <- data.frame(
+  unit <- c("Patient #1", "Patient #2", "Patient #3", "Patient #4", "Patient #5", "Patient  #6"),
+  control_outcome <- c(NA, NA, NA, 4, 0, 1),
+  treatment_outcome <- c(3, 5, 0, NA, NA, NA),
+  treated <- c(1, 1, 1, 0, 0, 0),
+  covariates <- c("3, 2, 1", "2, 4, 1", "5, 2, 4", "6, 1, 3", "4, 3, 2", "4, 1, 2")
+)
+colnames(medical_example) <- c("unit", "Y(0)", "Y(1)", "W", "covariates")
+kable(medical_example, "html") %>% kable_styling()
+
+```
+
+In this table we can see only the outcomes of the experiment for six patients, 
+but we are unable to calculate the causal effect at the patient level because we 
+will never observe the counterfactual result of not treating (treating) a treated (not treated) patient. 
+Instead, following Fisher we seek to observe the average causal effect of the treatment at a population 
+level by deriving a test-statistic from our observed results. 
+
+$T(\textbf{W}, \textbf{Y}^{obs}) = T^{diff} = |\overline{Y}^{obs}_{1} - \overline{Y}^{obs}_{0}|
+ = |8 / 3 - 5 /3 | = 1.00$
+
+Now this result is insufficient to conclude anything substantial 
+but consider the addition of a second assumption regarding the null hypothesis. 
+If the null hypothesis is true, (i.e. if the treatment has no effect), then 
+we have the following situation where: 
+
+$Y_{c}(0) = Y_{t}(1) = Y^{obs}$ 
+
+holds regardless of treatment plan. Hence we can vary the treatment in the following fashion and calculate 
+the test statistics from each. There are ${6 \choose 3} = 20$ treatment plans, 
+but we show the first 6 to give the idea. 
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
+library(dplyr)
+library(data.table)
+library(DT)
+combinations <- function(n) 
+    expand.grid(rep(list(0:1),n))
+
+
+pairwise <- combinations(6) 
+pairwise$sum <- rowSums(pairwise)
+pairwise <- subset(pairwise, pairwise$sum == 3)
+colnames(pairwise) <- 1:ncol(pairwise)
+rownames(pairwise) <- 1:nrow(pairwise)
+pairwise <- pairwise[,1:6]
+
+calcTestStat <- function(obs, poten) {
+  testStat <- c()
+    for (i in 1:nrow(poten)) {
+      obs$W <- t(poten[i,])
+      means <- obs %>% group_by(W) %>% 
+      summarise_each(funs(sum(., na.rm=TRUE)), `Y(0)`, `Y(1)`)
+      means <- means[, 2:3]
+      means$average = rowSums(means) / (nrow(obs)/2)
+      means <- as.matrix(means)
+      diff <- abs(means[1,3] - means[2, 3])
+      testStat <-c(testStat, diff)
+    }  
+  poten <- cbind(poten, testStat)
+  return(poten)
+}
+
+tableWithTestStat <- calcTestStat(medical_example, pairwise)
+kable(head(tableWithTestStat), "html") %>% kable_styling()
+
+```
+
+But in a population of a larger size the the numbers quickly grow. 
+For instance with 30 patients, we have ${30 \choose 15 } = 155,117,520$ number
+of potential treatment plans. Of these plans the null hypothesis states that the 
+observed outcome is as likely as any other outcome. 
+More concretely we can derive a p-value (the probability of our observed 
+case occuring given the null hypothesis) for our observed test-statistic from 
+the fact that we can calculate all the potential test-statistics resulting from 
+every possible treatment plan. Our p-value is the proportion of the possible treatment 
+plans would result in test-statistic greater than or comparable to the observed test-statistic? 
+A low p-value, typically below .05 indicates that the null hypothesis is false. 
+
+This type of consideration allows us to assess whether there is an 
+effect of the treatment, but not the degree to which the treatment is effective. 
+Fortunately we can make use of the same set up to estimate the average causal 
+effect to within an arbitary degree of confidence. 
+
+Consider instead that we take a series of null hypotheses to be defined as: 
+
+$Y_{c}(0) = Y_{t}(1) + c$ where $c \in C = [-3, -2.75, -2.5, ... 1.00]$
+
+Then for each case we are able to fill in the outcomes table. 
+If we let $c = .5$ then we have:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(DT)
+library(knitr)
+library(kableExtra)
+
+medical_example2 <- data.frame(
+  unit <- c("Patient #1", "Patient #2", "Patient #3", "Patient #4", "Patient #5", "Patient  #6"),
+  control_outcome <- c("(2.5)", "(4.5)", "(-0.5)", 4, 0, 1),
+  treatment_outcome <- c(3, 5, 0, "(4.5)", "(.5)", "(1.5)"),
+  treated <- c(1, 1, 1, 0, 0, 0),
+  covariates <- c("3, 2, 1", "2, 4, 1", "5, 2, 4", "6, 1, 3", "4, 3, 2", "4, 1, 2")
+)
+colnames(medical_example2) <- c("unit", "Y(0)", "Y(1)", "W", "covariates")
+kable(medical_example2, "html") %>% kable_styling()
+```
+
+which gives us the following test-statistic. 
+
+$T(\textbf{W}, \textbf{Y}^{obs}) = T^{diff} = 
+|\overline{Y}^{obs}_{1} - \overline{Y}^{obs}_{0} - c| = |8/3 - 5/3 -.5| = 0.5$
+
+we can now range over all the possible treatment plans and calculate a test statistic for each allowing us to derive a p-value for the observed result. Repeating this process for each $c \in C$ we gain a set of p-values which will circumscribe those elements of $C$ which have high positive probability under the assumed null hypothesis - giving us a range of values which are plausible candidates for the average causal effect of the treatment.
+However to calculate the p-value under each possible treatment plan is computationally very expensive. Instead we approximate the pvalue for each hypothesis by sampling from the set of all possible random assignments. 
+
+Consider a patient group of 14, then we have ${14 \choose 7} = 3432$ possible treatment plans. Our null hypothesis states that the treatment has a constant individual unit effect, so we can assess our observed t-statistic over the set of possible t-statistics derived from varying the treatment plan therby deriving a p-value for the observed result given the hypothesis of a constant effect. We can in the small cases where patients are a manageable number sample from the number of possible treatment plans to approximate the exact p-value. In the case of of 14 patients we can calculate the exact p-value, but with patient numbers 30+, we often need to use approximations.  If we iterate the process of series of constant values we can observe the candidate values which make our observed result more or less probable.  
+
+In our example we shall set up the control group to have a mean observed effect which varies around zero with a standard deviation of 1 and the treatment group to display observed effects with a standard deviation of 1 around 3. We shall then calculate the exact p-values and use these to isolate the unit causal effect. 
+
+```{r, message=FALSE, warning=FALSE}
+library(knitr)
+library(dplyr)
+library(kableExtra)
+library(magrittr)
+options(knitr.table.format = "html") 
+set.seed(1)
+
+makeDF <- function(units) {
+  len <- units
+  Y0 <- rnorm(units, 0, 1)
+  Y0[1:(len/2)] <- NA
+  Y1 <- rnorm(units, 3, 1)
+  Y1[((len/2)+1):len] <- NA
+  units <- 1:len
+  treatment <- c(rep(0, len))
+  treatment[1: len/2] <- 1
+  df <- data_frame(units, Y0, Y1, treatment)
+  colnames(df) <- c("unit", "Y(0)", "Y(1)", "W")
+  return(df)
+}
+
+potential_treatments <- c()
+# Method for sampling from distribution of treatment plans when computational
+# considerations demand approximation rather than exact figures
+#n <- No. of patients
+#assignment <- rep(c(0, 1), n)
+#k <- No of samples
+#for (i in 1:k) {
+#  permutation <- sample(assignment)
+#  if (!(permutation %in% potential_treatments)) {
+#    potential_treatments <- c(potential_treatments, list(permutation))
+#  }
+#}
+
+combinations <- function(n) 
+    expand.grid(rep(list(0:1),n))
+
+comb <- combinations(14)
+comb$sum <- rowSums(comb)
+treatments <- subset(comb, comb$sum == 7)
+treatments <- treatments[,1:14]
+for (i in 1:nrow(treatments)) {
+  potential_treatments <- c(potential_treatments, list(t(treatments[i,])))
+}
+print(length(potential_treatments))
+
+
+calcTest <- function(df, hypothetical_difference) {
+  AvgT <- aggregate(`Y(1)` ~ W, df, mean)
+  AvgT <- as.matrix(AvgT)
+  AvgC <- aggregate(`Y(0)` ~ W, df, mean)
+  AvgT <- as.matrix(AvgT)
+  diff <- abs(AvgT[2, 2] - AvgC[1, 2] - hypothetical_difference)
+  return(diff)
+}
+
+calcPvalue <- function(df, potential_treatments, treatment, hypothetical_difference) {
+  df$W <- treatment
+  df$`Y(1)` <- ifelse(is.na(df$`Y(1)`), 
+                      df$`Y(0)` + hypothetical_difference, 
+                      df$`Y(1)`)
+  df$`Y(0)` <- ifelse(is.na(df$`Y(0)`), 
+                      df$`Y(1)` - hypothetical_difference,
+                      df$`Y(0)`)
+  observed <- calcTest(df, hypothetical_difference)
+  
+  testStats <- c()
+  for (j in 1:length(potential_treatments)) {
+      df2 <- df
+      df2$W <- potential_treatments[[j]]
+      df2$`Y(1)` <- ifelse(is.na(df2$`Y(1)`), 
+                          df2$`Y(0)` + hypothetical_difference, 
+                          df2$`Y(1)`)
+      df2$`Y(0)` <- ifelse(is.na(df2$`Y(0)`), 
+                           df2$`Y(1)` - hypothetical_difference, 
+                           df2$`Y(0)`)
+      testStats <- c(testStats, calcTest(df2, hypothetical_difference))
+  }
+  pvalue <- length(testStats[testStats >= observed]) / length(testStats)
+  return(c(observed, pvalue))
+}
+
+calcAll <- function(units, potential_treatments, treatment, hypothetical_differences) {
+  pvalues <- data_frame(Candidate = c(1), Observed = c(2), Pvalue = c(3))
+  df <- makeDF(units)
+  for (i in 1:length(hypothetical_differences)) {
+    pvalue  <- calcPvalue(df, potential_treatments, treatment, hypothetical_differences[i])
+    pvalues <- rbind(pvalues, c(hypothetical_differences[i], pvalue[1], pvalue[2]))
+  }
+  return(pvalues)
+}
+
+hypothetical_differences <- seq(2, 5, .2) 
+treatment <- c(rep(0, 14))
+treatment[1:7] <- 1
+result <- calcAll(14, potential_treatments, treatment, hypothetical_differences)
+colnames(result) <- c("Hypothetical Difference", "Observed TestStat", "Exact P-value")
+df <- makeDF(14)
+
+observed <- kable(head(df, 14), "html") %>% kable_styling()
+observed
+
+hypotheses <- kable(result[2:nrow(result), ], "html") %>% kable_styling()
+hypotheses
+
+```
+From which we can see that we have a 95% confidence interval for the causal effect of our treatment between 2.6 and 4.8 which is a conservative estimate allowing for the fact that our set up specified a potential standard deviatin of 1 in both groups. But note how the p-values are highest around 3 - the actual difference (as we defined it) in the means of the two groups. 

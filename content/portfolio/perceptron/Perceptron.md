@@ -1,7 +1,7 @@
 +++
 date = "2017-05-08T08:22:07+01:00"
 draft = false
-title = "Decision Boundaries"
+title = "Perceptron"
 image = "/portfolio/perceptron/perceptron_schematic.png"
 +++
 

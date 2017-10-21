@@ -9,6 +9,7 @@ googleAnalytics = ""
 PygmentsCodeFences = true
 PygmentsStyle = "friendly"
 
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$","\\.nb$", "\\.nb.html$"]
 
 [params]
   # Style options: default (pink), blue, green, pink, red, sea, violet

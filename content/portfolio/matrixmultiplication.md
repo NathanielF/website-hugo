@@ -67,38 +67,130 @@ func mtrxMult(array1 [][]float64, array2 [][]float64) [][]float64 {
 
 
 ```
-We can see here that this function constructs the new matrix by (a) ensuring the two input matrices have conformable arguments (b) building the new matrix row by row. We hold the row value fixed and iterate along populating the values until we hit the end, at which point we move to the next row. To populate each element we take the simple dotproduct of the a column from the first matrix and row from the second, so as long as the two matrices have the correct number of dimensions this procedure will work. Consider:
+We can see here that this function constructs the new matrix by (a) ensuring the two input matrices have conformable arguments (b) building the new matrix row by row. We hold the row value fixed and iterate along populating the values until we hit the end, at which point we move to the next row. To populate each element we take the simple dotproduct of the a column from the first matrix and row from the second, so as long as the two matrices have the correct number of dimensions this procedure will work.
+
+Next we make use of this operation to define the LU decomposition algorithm. 
+
+``` go
+// MakeZero creates a square zero matrix
+func MakeZero(number int) [][]float64 {
+	m := make([][]float64, number)
+	for i := range m {
+		r := make([]float64, number)
+		m[i] = r
+		for j := range m[i] {
+			m[i][j] = 0.0
+		}
+	}
+	return m
+}
+
+// Eye creates the identity matrix for a square matrix of size n
+func Eye(number int) [][]float64 {
+	m := MakeZero(number)
+	for i := 0; i < number; i++ {
+		m[i][i] = 1.0
+	}
+	return m
+}
+
+// LuDecomp performs the L U decomposition of a square matrix using Crout's method.
+func LuDecomp(A [][]float64) (L [][]float64, U [][]float64) {
+	n := len(A)
+	l := MakeZero(n) // primes l
+	u := Eye(n)      // primes u
+
+	l[0][0] = A[0][0]
+	for j := 1; j < n; j++ {
+		l[j][0] = A[j][0]           // copies remainder of first column into L
+		u[0][j] = A[0][j] / l[0][0] // scales first row in U, barring 1st entry
+	}
+	//fmt.Println(l, u)
+	for j := 1; j < n-1; j++ { //encompasses both l and u
+
+		for i := j; i < n; i++ { // populates l from second column onwards
+			l[i][j] = A[i][j]
+			for k := 0; k <= j-1; k++ {
+				l[i][j] = l[i][j] - l[i][k]*u[k][j] //makes use of definition of mtrx multiplication and structure of l
+
+			}
+		}
+
+		for k := j + 1; k < n; k++ { // populates u from second row onwards
+			u[j][k] = A[j][k]
+			for i := 0; i < j; i++ {
+				u[j][k] = u[j][k] - l[j][i]*u[i][k] //makes use of definition of mtrx multiplication and structure of u
+			}
+			u[j][k] = u[j][k] / l[j][j] //scales u
+		}
+	}
+	l[n-1][n-1] = A[n-1][n-1] // sets the nth value of l
+	for k := 0; k < n-1; k++ {
+		l[n-1][n-1] -= l[n-1][k] * u[k][n-1]
+	}
+
+	return l, u
+}
+
+```
+This algorithm works by decomposing a given matrix into two triangular matrices which can be used to solve a system of linear equations. For the moment we demonstrate the decomposition. 
 
 ``` go
 
-	A := make([][]float64, 3) // 3 X 2
-	A[0] = []float64{3, 2}
-	A[1] = []float64{7, 6}
-	A[2] = []float64{7, 6}
+func main() {
+	A := make([][]float64, 3)
+	A[0] = []float64{3, -0.1, -0.2}
+	A[1] = []float64{0.1, 7, -0.3}
+	A[2] = []float64{0.3, -0.2, 10}
 
-	B := make([][]float64, 2) //2 X 3
-	B[0] = []float64{1, 2, 3}
-	B[1] = []float64{3, 4, 1}
+	B := make([][]float64, 3)
+	B[0] = []float64{4, 0, 1}
+	B[1] = []float64{2, 1, 0}
+	B[2] = []float64{2, 2, 3}
 
-	C := make([][]float64, 1)
-	C[0] = []float64{2, 2, 2} // 1 X 3
+	C := make([][]float64, 3)
+	C[0] = []float64{1, 3, 4}
+	C[1] = []float64{3, 15, 20}
+	C[2] = []float64{2, 18, 26}
 
-	D := make([][]float64, 3) //  3 X 2
-	D[0] = []float64{1, 1}
-	D[1] = []float64{1, 2}
-	D[2] = []float64{1, 1}
+	D := make([][]float64, 3)
+	D[0] = []float64{1, 2, 4}
+	D[1] = []float64{3, 8, 14}
+	D[2] = []float64{2, 6, 13}
 
+	E := make([][]float64, 2)
+	E[0] = []float64{3, 1}
+	E[1] = []float64{-6, -4}
 
-func printMatrix(matrix [][]float64) {
-	for i := 0; i < len(matrix); i++ {
-		fmt.Println("m", i, ":", matrix[i], "\n")
-	}
-	return
+	a, b := LuDecomp(C)
+	fmt.Println("Lower", a, "Upper", b)
+	fmt.Println("Same?", C, MtrxMult(a, b))
+
+	fmt.Println("_____________________")
+
+	l, u := LuDecomp(B)
+	fmt.Println("Lower", l, "Upper", u)
+	fmt.Println("Same?", B, MtrxMult(l, u))
+
+	fmt.Println("_____________________")
+
+	L, U := LuDecomp(A)
+	fmt.Println("Lower", L, "Upper", U)
+	fmt.Println("Same?", A, MtrxMult(L, U))
+
+	fmt.Println("_____________________")
+
+	c, d := LuDecomp(D)
+	fmt.Println("Lower", c, "Upper", d)
+	fmt.Println("Same?", D, MtrxMult(c, d))
+
+	fmt.Println("_____________________")
+
+	e, f := LuDecomp(E)
+	fmt.Println("Lower", e, "Upper", f)
+	fmt.Println("Same?", E, MtrxMult(e, f))
+
 }
 
-printMatrix(mtrxMult(B, D))   //   m 0: [6 8]
-                              //   m 1: [8 12]
-
-printMatrix(mtrxMult(C, A))   // m 0: [34, 28]
 
 ```
